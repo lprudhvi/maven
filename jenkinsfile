@@ -1,0 +1,25 @@
+node('built-in') 
+{
+    stage('continuous download') 
+    {
+    git 'https://github.com/lprudhvi/maven.git'
+    }
+    stage('continuous build') 
+    {
+    sh 'mvn package'
+    }
+    stage('continuous deployment') 
+    {
+    deploy adapters: [tomcat9(credentialsId: '1fc1cc4f-73c9-489d-b3a9-5d2b03251bb4', path: '', url: 'http://172.31.1.81:8080')], contextPath: 'testapp', war: '**/*.war'
+    }
+    stage('continuous testing') 
+    {
+    git 'https://github.com/lprudhvi/FunctionalTesting.git'
+    sh 'java -jar /var/lib/jenkins/workspace/scriptedpipeline/testing.jar'
+    }
+    stage('continuous delivery') 
+    {
+        input message: 'waiting for approval', submitter: 'user1'
+    deploy adapters: [tomcat9(credentialsId: '1fc1cc4f-73c9-489d-b3a9-5d2b03251bb4', path: '', url: 'http://172.31.5.63:8080')], contextPath: 'prodapp', war: '**/*.war'
+    }
+}
